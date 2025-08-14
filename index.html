@@ -22,6 +22,10 @@
   <nav class="nav">
     <div class="container nav-inner">
       <div class="brand"><img src="assets/img/logo-pcp.svg" alt="pcp" height="40" style="height:40px"></div>
+
+      <!-- гамбургер для мобильной навигации -->
+      <button class="m-nav-toggle" aria-label="Открыть меню" aria-expanded="false">☰</button>
+
       <div class="links">
         <a href="#about" data-i18n="nav_about"></a>
         <a href="#products" data-i18n="nav_products"></a>
@@ -150,5 +154,19 @@
   </div></section>
 
   <footer><div class="container" data-i18n="footer"></div></footer>
+
   <script src="assets/js/app.js"></script>
+  <!-- небольшой inline-скрипт, если у тебя ещё нет обработчика в app.js -->
+  <script>
+    (function(){
+      const btn = document.querySelector(".m-nav-toggle");
+      const links = document.querySelector(".nav .links");
+      if(!btn || !links) return;
+      btn.addEventListener("click", ()=>{
+        const open = links.classList.toggle("show");
+        btn.setAttribute("aria-expanded", open ? "true" : "false");
+      });
+      links.querySelectorAll("a").forEach(a=> a.addEventListener("click", ()=> links.classList.remove("show")));
+    })();
+  </script>
 </body></html>

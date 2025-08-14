@@ -113,3 +113,13 @@ window.addEventListener("DOMContentLoaded", () => {
 });
 
 window.pcpSetLang = setLang;
+
+// mobile menu toggle
+window.addEventListener("DOMContentLoaded", ()=>{
+  const btn = document.querySelector(".m-nav-toggle");
+  const links = document.querySelector(".nav .links");
+  if(btn && links){
+    btn.addEventListener("click", ()=> links.classList.toggle("show"));
+    links.querySelectorAll("a").forEach(a=> a.addEventListener("click", ()=> links.classList.remove("show")));
+  }
+});
