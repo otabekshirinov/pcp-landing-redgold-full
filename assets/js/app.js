@@ -1,6 +1,7 @@
-
+// ===================== i18n =====================
 const dict = {
-  ru: { nav_about:"О компании", nav_products:"Продукция", nav_industries:"Отрасли", nav_contact:"Контакты",
+  ru: {
+    nav_about:"О компании", nav_products:"Продукция", nav_industries:"Отрасли", nav_contact:"Контакты",
     hero_badge:"Инженерные решения мирового уровня",
     hero_h1:"Промышленные компоненты <span style='background:linear-gradient(135deg,#F6D56B,#B97A13);-webkit-background-clip:text;background-clip:text;color:transparent'>класса премиум</span>",
     hero_p:"«pcp» проектирует и поставляет арматуру, трубопроводные системы и решения для тяжелой промышленности.",
@@ -24,7 +25,8 @@ const dict = {
     name:"Ваше имя", phone:"Телефон", message:"Сообщение", send:"Отправить запрос", sent:"Спасибо! Мы свяжемся с вами в ближайшее время.",
     footer:"© " + new Date().getFullYear() + " pcp. Все права защищены."
   },
-  uz: { nav_about:"Kompaniya haqida", nav_products:"Mahsulotlar", nav_industries:"Tarmoqlar", nav_contact:"Aloqa",
+  uz: {
+    nav_about:"Kompaniya haqida", nav_products:"Mahsulotlar", nav_industries:"Tarmoqlar", nav_contact:"Aloqa",
     hero_badge:"Jahon darajasidagi muhandislik yechimlari",
     hero_h1:"Sanoat komponentlari <span style='background:linear-gradient(135deg,#F6D56B,#B97A13);-webkit-background-clip:text;background-clip:text;color:transparent'>premium sinf</span>",
     hero_p:"«pcp» og‘ir sanoat uchun armatura, quvurlar tizimi va yechimlarni yetkazadi.",
@@ -54,72 +56,127 @@ function setLang(lang){
   const d = dict[lang] || dict.ru;
   document.querySelectorAll("[data-i18n]").forEach(el=>{
     const key = el.getAttribute("data-i18n");
-    if(d[key] !== undefined){ el.innerHTML = d[key]; }
+    if (d[key] !== undefined) el.innerHTML = d[key];
   });
   document.querySelectorAll("[data-i18n-ph]").forEach(el=>{
     const key = el.getAttribute("data-i18n-ph");
-    if(d[key] !== undefined){ el.setAttribute("placeholder", d[key]); }
+    if (d[key] !== undefined) el.setAttribute("placeholder", d[key]);
   });
   document.querySelectorAll(".lang-switch button").forEach(b=>b.classList.remove("active"));
   const btn = document.querySelector(`.lang-switch button[data-lang='${lang}']`);
-  if(btn) btn.classList.add("active");
+  if (btn) btn.classList.add("active");
   localStorage.setItem("pcp-lang", lang);
 }
+window.pcpSetLang = setLang;
 
+// ===================== onload =====================
 window.addEventListener("DOMContentLoaded", () => {
-  const saved = localStorage.getItem("pcp-lang") || "ru";
-  setLang(saved);
+  // язык
+  setLang(localStorage.getItem("pcp-lang") || "ru");
 
-  const io = new IntersectionObserver((ents)=>{
-    ents.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add("show"); io.unobserve(e.target); } });
-  }, {threshold:.12});
+  // появление блоков при скролле
+  const io = new IntersectionObserver(ents=>{
+    ents.forEach(e=>{
+      if (e.isIntersecting){ e.target.classList.add("show"); io.unobserve(e.target); }
+    });
+  }, { threshold:.12 });
   document.querySelectorAll(".reveal").forEach(el=>io.observe(el));
 
+  // счётчики
   const counters = document.querySelectorAll("[data-counter]");
-  const ci = new IntersectionObserver((entries)=>{
+  const ci = new IntersectionObserver(entries=>{
     entries.forEach(e=>{
-      if(e.isIntersecting){
-        const el = e.target; const end = parseInt(el.getAttribute("data-counter"),10);
-        let cur = 0; const inc = Math.max(1, Math.round(end/80));
-        const t = setInterval(()=>{ cur += inc; if(cur >= end){ cur = end; clearInterval(t); } el.textContent = cur.toLocaleString("ru-RU"); }, 16);
-        ci.unobserve(el);
-      }
+      if (!e.isIntersecting) return;
+      const el = e.target;
+      const end = parseInt(el.getAttribute("data-counter")||"0",10);
+      let cur = 0; const inc = Math.max(1, Math.round(end/80));
+      const t = setInterval(()=>{
+        cur += inc;
+        if (cur >= end){ cur = end; clearInterval(t); }
+        el.textContent = cur.toLocaleString("ru-RU");
+      }, 16);
+      ci.unobserve(el);
     });
-  }, {threshold:.6});
+  }, { threshold:.6 });
   counters.forEach(el=>ci.observe(el));
 
+  // префилл из каталога
   document.addEventListener("click", (e)=>{
     const a = e.target.closest("a[data-prefill]");
     if(!a) return;
     const field = document.querySelector('textarea[name="msg"]');
-    const msg = a.getAttribute("data-prefill");
-    if(field){ field.value = msg + "\\n\\n— Укажите объёмы, давления, температуру и стандарты"; }
+    const msg = a.getAttribute("data-prefill") || "";
+    if(field){
+      field.value = msg + "\n\n— Укажите объёмы, давления, температуру и стандарты";
+      field.focus();
+    }
   });
 
+  // отправка формы
   const form = document.getElementById("contact-form");
   form?.addEventListener("submit", async (e)=>{
     e.preventDefault();
-    const data = { name: form.name.value.trim(), phone: form.phone.value.trim(), msg: form.msg.value.trim(), lang: localStorage.getItem("pcp-lang")||"ru" };
+    const data = {
+      name: form.name.value.trim(),
+      phone: form.phone.value.trim(),
+      msg: form.msg.value.trim(),
+      lang: localStorage.getItem("pcp-lang") || "ru"
+    };
     const n = document.getElementById("notice");
     try{
-      const res = await fetch("/api/contact", { method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify(data) });
+      const res = await fetch("/api/contact", {
+        method:"POST",
+        headers:{ "Content-Type":"application/json" },
+        body: JSON.stringify(data)
+      });
       if(!res.ok) throw new Error("HTTP " + res.status);
-      form.reset(); n.textContent = (dict[data.lang]||dict.ru).sent; n.classList.add("glass"); n.style.padding="12px 14px"; n.style.marginTop="10px";
+      form.reset();
+      n.textContent = (dict[data.lang]||dict.ru).sent;
+      n.classList.add("glass"); n.style.padding="12px 14px"; n.style.marginTop="10px";
+      n.style.color = ""; // на случай ошибки ранее
     }catch(err){
       n.textContent = "Ошибка отправки. Подключите бэкенд или напишите в Telegram.";
       n.style.color = "#ffb3b3";
     }
   });
-});
 
-window.pcpSetLang = setLang;
-
-// mobile menu toggle
-window.addEventListener("DOMContentLoaded", ()=>{
+  // ===================== mobile menu =====================
   const btn = document.querySelector(".m-nav-toggle");
   const links = document.querySelector(".nav .links");
-  if(btn && links){
-    btn.addEventListener("click", ()=> links.classList.toggle("show"));
-    links.querySelectorAll("a").forEach(a=> a.addEventListener("click", ()=> links.classList.remove("show")));
+
+  function closeMenu(){ links?.classList.remove("show"); btn?.setAttribute("aria-expanded","false"); }
+  function openMenu(){ links?.classList.add("show"); btn?.setAttribute("aria-expanded","true"); }
+
+  function syncForViewport(){
+    // ПК: закрыть меню и спрятать кнопку визуально через класс (CSS media уже управляет, это просто safety)
+    if (window.innerWidth >= 861) closeMenu();
+  }
+
+  if (btn && links){
+    // ARIA
+    btn.setAttribute("aria-label","Меню");
+    btn.setAttribute("aria-expanded","false");
+
+    btn.addEventListener("click", ()=>{
+      const isOpen = links.classList.toggle("show");
+      btn.setAttribute("aria-expanded", isOpen ? "true" : "false");
+    });
+
+    // закрытие при клике по пункту
+    links.querySelectorAll("a").forEach(a=> a.addEventListener("click", closeMenu));
+
+    // клик вне меню
+    document.addEventListener("click", (e)=>{
+      if (!links.classList.contains("show")) return;
+      if (e.target.closest(".nav .links") || e.target.closest(".m-nav-toggle")) return;
+      closeMenu();
+    });
+
+    // ESC
+    document.addEventListener("keydown", (e)=>{ if(e.key === "Escape") closeMenu(); });
+
+    // ресайз
+    window.addEventListener("resize", syncForViewport);
+    syncForViewport();
   }
 });

@@ -1,9 +1,9 @@
-
 :root{
   --bg:#12080a; --bg-2:#1b0e11; --txt:#fff5f7; --muted:#f3cdd3;
   --gold-1:#F6D56B; --gold-2:#B97A13; --accent:#e95858;
   --card: rgba(255,255,255,0.06); --stroke: rgba(255,255,255,0.18);
   --blur:14px; --radius:22px; --shadow:0 20px 60px rgba(0,0,0,.55);
+  --container-pad:20px;
 }
 *{box-sizing:border-box}
 html,body{height:100%}
@@ -16,7 +16,7 @@ body{
   background-attachment: fixed; line-height:1.55;
 }
 a{color:inherit;text-decoration:none} img{display:block;max-width:100%}
-.container{max-width:1200px;margin:0 auto;padding:0 20px}
+.container{max-width:1200px;margin:0 auto;padding:0 var(--container-pad)}
 .glass{background:var(--card); border:1px solid var(--stroke); backdrop-filter: blur(var(--blur)); border-radius:var(--radius); box-shadow:var(--shadow)}
 
 .btn{ display:inline-flex; gap:.6rem; align-items:center; justify-content:center; padding:.9rem 1.25rem;
@@ -33,6 +33,9 @@ a{color:inherit;text-decoration:none} img{display:block;max-width:100%}
 .nav a{ opacity:.9 } .nav a:hover{ opacity:1 }
 .nav .brand{ display:flex; align-items:center; gap:.8rem }
 .nav .links{ display:flex; gap:1rem; align-items:center }
+
+/* по умолчанию (desktop-first) — бургер скрыт */
+.m-nav-toggle{ display:none; }
 
 .lang-switch{ display:flex; gap:.4rem; align-items:center }
 .lang-switch button{ background:transparent; border:1px solid var(--stroke); color:var(--txt); padding:.35rem .7rem; border-radius:10px; cursor:pointer; opacity:.85 }
@@ -74,32 +77,56 @@ a{color:inherit;text-decoration:none} img{display:block;max-width:100%}
 footer{ padding:22px 0; color:var(--muted); border-top:1px solid rgba(255,255,255,.08) }
 .reveal{ opacity:0; transform: translateY(10px); transition: all .6s ease } .reveal.show{ opacity:1; transform:none }
 
-/* === Mobile enhancements === */
-:root{ --container-pad:20px }
-.container{ padding:0 var(--container-pad) }
+/* === Navigation: desktop vs mobile === */
 
+/* Desktop (>=861px): бургер скрыт, меню обычное */
+@media (min-width: 861px){
+  .m-nav-toggle{ display: none !important; }
+  .nav .links{
+    display: flex !important;
+    position: static;
+    background: transparent;
+    border: 0;
+    padding: 0;
+    border-radius: 0;
+    gap: 1rem;
+  }
+}
+
+/* Mobile (<=860px): бургер виден, меню выпадает */
 @media (max-width: 860px){
-  .m-nav-toggle{ 
-    display:inline-flex; align-items:center; justify-content:center; 
-    width:38px; height:38px; border-radius:10px; 
-    border:1px solid var(--stroke); background:rgba(255,255,255,.06); cursor:pointer;
+  .m-nav-toggle{
+    display:inline-flex;
+    align-items:center; justify-content:center;
+    width:38px; height:38px;
+    border-radius:10px;
+    border:1px solid var(--stroke);
+    background:rgba(255,255,255,.06);
+    cursor:pointer;
   }
   .nav .links{
     position:fixed; top:56px; right:14px; left:14px;
-    background:rgba(20,8,10,.95); border:1px solid var(--stroke);
-    border-radius:14px; padding:12px; display:none; flex-direction:column; gap:10px;
+    background:rgba(20,8,10,.97);
+    border:1px solid var(--stroke);
+    border-radius:14px;
+    padding:12px;
+    gap:10px;
+    display:none;                 /* по умолчанию скрыто */
+    flex-direction:column;
+    z-index:1000;
   }
-  .nav .links.show{ display:flex }
+  .nav .links.show{ display:flex; }
 
   .hero{ padding:56px 0 28px }
   .hero-grid{ grid-template-columns:1fr }
   .hero h1{ font-size: clamp(28px, 8vw, 44px) }
   .hero p.lead{ font-size: clamp(14px, 4vw, 18px) }
-  .cta .btn{ width:100% }              /* кнопки на всю ширину */
+  .cta .btn{ width:100% }
   .stats{ grid-template-columns:repeat(2,1fr) }
   .grid-3{ grid-template-columns:1fr }
 }
 
+/* Small phones */
 @media (max-width: 560px){
   :root{ --container-pad:14px }
   .hero .card-mosaic{ grid-template-columns:1fr }
